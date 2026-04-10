@@ -1,9 +1,10 @@
 import Layout from '../components/Common/Layout';
+import StatsCards from '../components/Dashboard/StatsCards';
 
 function Dashboard() {
   return (
     <Layout>
-      <h1>Dashboard</h1>
+      <StatsCards />
     </Layout>
   );
 }

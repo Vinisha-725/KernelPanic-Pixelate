@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 
@@ -213,6 +214,10 @@ const MapView = ({ onMapClick, onClaim, onComplete }) => {
       `}</style>
     </>
   )
+=======
+function MapView() {
+  return <div style={{ height: '300px', border: '1px solid #ccc' }}>Map Placeholder</div>;
+>>>>>>> d73e059974726f1855eb8e2ce0bcfbd76320b3a1
 }
 
-export default MapView
+export default MapView;

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from 'react'
 
 const ReportForm = ({ onSubmit, onClose }) => {
@@ -267,6 +268,16 @@ const ReportForm = ({ onSubmit, onClose }) => {
       `}</style>
     </div>
   )
+=======
+function ReportForm() {
+  return (
+    <form>
+      <input placeholder="Location" />
+      <textarea placeholder="Description" />
+      <button type="submit">Submit</button>
+    </form>
+  );
+>>>>>>> d73e059974726f1855eb8e2ce0bcfbd76320b3a1
 }
 
-export default ReportForm
+export default ReportForm;
