@@ -109,6 +109,12 @@ const QuickAddCase = ({ onAdd, onCancel }) => {
       }
       
       console.log('Submitting quick case:', reportData)
+      
+      // Save to localStorage for Cases page
+      const existingReports = JSON.parse(localStorage.getItem('testReports') || '[]')
+      existingReports.unshift(reportData) // Add to beginning
+      localStorage.setItem('testReports', JSON.stringify(existingReports))
+      
       await onAdd(reportData)
       
       // Reset form

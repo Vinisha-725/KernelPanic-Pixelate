@@ -37,20 +37,41 @@ const MapView = ({ onMapClick, onClaim, onComplete }) => {
     // Load and display reports
     fetchReports()
 
+    // Listen for storage changes (when new reports are added)
+    const handleStorageChange = (e) => {
+      if (e.key === 'testReports') {
+        fetchReports() // Refresh markers when reports change
+      }
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+
     return () => {
       if (map.current) {
         map.current.remove()
       }
+      window.removeEventListener('storage', handleStorageChange)
     }
   }, [])
 
   const fetchReports = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/reports')
-      const data = await response.json()
+      // Get reports from localStorage first
+      const storedReports = JSON.parse(localStorage.getItem('testReports') || '[]')
+      if (storedReports.length > 0) {
+        addMarkersToMap(storedReports)
+      }
       
-      if (data.success) {
-        addMarkersToMap(data.data)
+      // Also try to fetch from API if available
+      try {
+        const response = await fetch('http://localhost:5000/api/reports')
+        const data = await response.json()
+        
+        if (data.success && data.data.length > 0) {
+          addMarkersToMap(data.data)
+        }
+      } catch (apiError) {
+        console.log('API not available, using stored data')
       }
     } catch (error) {
       console.error('Error fetching reports:', error)

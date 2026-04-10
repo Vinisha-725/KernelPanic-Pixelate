@@ -129,10 +129,18 @@ const ComprehensiveReportForm = ({ onSubmit, onClose, selectedLocation }) => {
         event_time: formData.event_time,
         expected_volunteers: formData.expected_volunteers,
         special_requirements: formData.special_requirements,
-        status: formData.organize_event ? 'Volunteer Event Planned' : 'Reported'
+        status: formData.organize_event ? 'Volunteer Event Planned' : 'Reported',
+        created_at: new Date().toISOString(),
+        id: 'report_' + Date.now()
       }
       
       console.log('Submitting comprehensive report:', reportData)
+      
+      // Save to localStorage for Cases page
+      const existingReports = JSON.parse(localStorage.getItem('testReports') || '[]')
+      existingReports.unshift(reportData) // Add to beginning
+      localStorage.setItem('testReports', JSON.stringify(existingReports))
+      
       await onSubmit(reportData)
       
       // Reset form

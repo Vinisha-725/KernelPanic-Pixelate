@@ -13,13 +13,24 @@ const Cases = () => {
 
   const fetchReports = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/reports')
-      const data = await response.json()
-      
-      if (data.success) {
-        setReports(data.data)
+      // Try to get reports from localStorage (from test submissions)
+      const storedReports = localStorage.getItem('testReports')
+      if (storedReports) {
+        setReports(JSON.parse(storedReports))
       } else {
-        console.error('Failed to fetch reports:', data.message)
+        setReports([])
+      }
+      
+      // Also try to fetch from API if available
+      try {
+        const response = await fetch('http://localhost:5000/api/reports')
+        const data = await response.json()
+        
+        if (data.success && data.data.length > 0) {
+          setReports(data.data)
+        }
+      } catch (apiError) {
+        console.log('API not available, using stored data')
       }
     } catch (error) {
       console.error('Error fetching reports:', error)
