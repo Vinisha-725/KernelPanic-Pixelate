@@ -1,13 +1,11 @@
-import StatsCards from '../components/Dashboard/StatsCards'
+import Layout from '../components/Common/Layout';
 
-const Dashboard = () => {
+function Dashboard() {
   return (
-    <div>
-      <h2>Dashboard</h2>
-      <p>Overview of garbage reports and statistics</p>
-      <StatsCards />
-    </div>
-  )
+    <Layout>
+      <h1>Dashboard</h1>
+    </Layout>
+  );
 }
 
-export default Dashboard
+export default Dashboard;

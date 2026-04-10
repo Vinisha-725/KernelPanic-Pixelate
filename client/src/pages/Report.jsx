@@ -1,13 +1,11 @@
-import ReportForm from '../components/Report/ReportForm'
+import Layout from '../components/Common/Layout';
 
-const Report = () => {
+function Report() {
   return (
-    <div>
-      <h2>Report Garbage Issue</h2>
-      <p>Help keep our community clean by reporting garbage issues</p>
-      <ReportForm />
-    </div>
-  )
+    <Layout>
+      <h1>Report Garbage</h1>
+    </Layout>
+  );
 }
 
-export default Report
+export default Report;

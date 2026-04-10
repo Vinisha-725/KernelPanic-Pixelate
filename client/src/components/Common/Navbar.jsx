@@ -1,18 +1,24 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
 
-const Navbar = () => {
+function Navbar() {
   return (
-    <nav className="navbar">
-      <div className="navbar-content">
-        <h1>Garbage Reporting System</h1>
-        <div>
-          <Link to="/" style={{ marginRight: '1rem' }}>Home</Link>
-          <Link to="/report" style={{ marginRight: '1rem' }}>Report</Link>
-          <Link to="/dashboard">Dashboard</Link>
-        </div>
+    <nav style={styles.nav}>
+      <h2>Garbage Reporting System</h2>
+
+      <div>
+        <Link to="/">Home</Link> |{' '}
+        <Link to="/report">Report</Link> |{' '}
+        <Link to="/dashboard">Dashboard</Link>
       </div>
     </nav>
-  )
+  );
 }
 
-export default Navbar
+const styles = {
+  nav: {
+    padding: '1rem',
+    borderBottom: '1px solid #ccc',
+  },
+};
+
+export default Navbar;
