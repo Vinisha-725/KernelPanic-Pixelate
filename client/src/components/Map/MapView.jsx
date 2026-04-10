@@ -216,4 +216,4 @@ const MapView = ({ onMapClick, onClaim, onComplete }) => {
   )
 }
 
-export default MapView;
+export default MapView
