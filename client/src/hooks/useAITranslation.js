@@ -2,34 +2,39 @@ import { useState, useEffect } from 'react'
 
 const translations = {
   en: {
-    volunteerCleanupReport: " ",
-    volunteerInformation: " ",
-    name: " ",
-    phone: " ",
-    email: " ",
-    cleanupDetails: " ",
-    location: " ",
-    date: " ",
-    time: " ",
-    areaSize: " ",
-    wasteType: " ",
-    volunteersCount: " ",
-    description: " ",
-    photos: " ",
-    beforePhoto: " ",
-    afterPhoto: " ",
-    submitCleanupReport: " ",
-    home: " ",
-    cases: " ",
-    volunteer: " ",
-    dashboard: " ",
-    volunteerHub: " ",
-    submitCleanup: " ",
-    leaderboard: " ",
-    successGallery: " ",
-    aiAnalysis: " ",
-    analyzing: " ",
-    analysisComplete: " "
+    volunteerCleanupReport: "Volunteer Cleanup Report",
+    volunteerInformation: "Volunteer Information",
+    name: "Name",
+    phone: "Phone",
+    email: "Email",
+    cleanupDetails: "Cleanup Details",
+    location: "Location",
+    date: "Date",
+    time: "Time",
+    areaSize: "Area Size",
+    wasteType: "Waste Type",
+    volunteersCount: "Volunteers Count",
+    description: "Description",
+    photos: "Photos",
+    beforePhoto: "Before Photo",
+    afterPhoto: "After Photo",
+    submitCleanupReport: "Submit Cleanup Report",
+    home: "Home",
+    cases: "Cases",
+    volunteer: "Volunteer",
+    dashboard: "Dashboard",
+    volunteerHub: "Volunteer Hub",
+    submitCleanup: "Submit Cleanup",
+    leaderboard: "Leaderboard",
+    successGallery: "Success Gallery",
+    aiAnalysis: "AI Analysis",
+    analyzing: "Analyzing...",
+    analysisComplete: "Analysis Complete!",
+    // Placeholders left empty as requested
+    namePlaceholder: "",
+    phonePlaceholder: "",
+    emailPlaceholder: "",
+    locationPlaceholder: ""
   },
   hi: {
     volunteerCleanupReport: "स्वयंसेवक सफाई रिपोर्ट",
@@ -59,7 +64,11 @@ const translations = {
     successGallery: "सफलता गैलरी",
     aiAnalysis: "एआई विश्लेषण",
     analyzing: "विश्लेषण हो रहा है...",
-    analysisComplete: "विश्लेषण पूरा हुआ!"
+    analysisComplete: "विश्लेषण पूरा हुआ!",
+    namePlaceholder: "",
+    phonePlaceholder: "",
+    emailPlaceholder: "",
+    locationPlaceholder: ""
   },
   ta: {
     volunteerCleanupReport: "தன்னார்வலர் துப்புரவு அறிக்கை",
@@ -89,7 +98,11 @@ const translations = {
     successGallery: "வெற்றி தொகுப்பு",
     aiAnalysis: "AI பகுப்பாய்வு",
     analyzing: "பகுப்பாய்வு செய்யப்படுகிறது...",
-    analysisComplete: "பகுப்பாய்வு முடிந்தது!"
+    analysisComplete: "பகுப்பாய்வு முடிந்தது!",
+    namePlaceholder: "",
+    phonePlaceholder: "",
+    emailPlaceholder: "",
+    locationPlaceholder: ""
   },
   te: {
     volunteerCleanupReport: "స్వచ్ఛంద శుభ్రత నివేదిక",
@@ -119,13 +132,16 @@ const translations = {
     successGallery: "సక్సెస్ గ్యాలరీ",
     aiAnalysis: "AI విశ్లేషణ",
     analyzing: "విశ్లేషిస్తోంది...",
-    analysisComplete: "విశ్లేషణ పూర్తయింది!"
+    analysisComplete: "విశ్లేషణ పూర్తయింది!",
+    namePlaceholder: "",
+    phonePlaceholder: "",
+    emailPlaceholder: "",
+    locationPlaceholder: ""
   }
 }
 
 const useAITranslation = () => {
   const [language, setLanguage] = useState(() => {
-    // Basic SSR check for localStorage
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('preferredLanguage')
       return saved || 'en'
@@ -148,7 +164,7 @@ const useAITranslation = () => {
   const getLanguageName = (code) => {
     const names = {
       en: 'English',
-      hi: 'हिन्दी', // Using native scripts for the selector is better UX
+      hi: 'हिन्दी',
       ta: 'தமிழ்',
       te: 'తెలుగు'
     }

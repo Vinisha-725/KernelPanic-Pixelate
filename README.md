@@ -1,6 +1,111 @@
-# Pixelate - Garbage Reporting System
+# CleanCity - Environmental Cleanup Tracking System
 
-A web application for reporting and tracking garbage issues in communities using React, Node.js, and Supabase with PostGIS.
+An AI-powered platform for tracking volunteer cleanup activities, calculating eco points, and promoting environmental sustainability with multi-language support.
+
+## 🌟 Features
+
+- **🌍 Multi-Language Support**: English, Hindi, Tamil, Telugu
+- **🤖 AI Analysis**: Automated cleanup area calculation and eco points
+- **📱 Volunteer Management**: Submit and track cleanup activities
+- **🏆 Leaderboard**: Gamification with eco points system
+- **📊 Analytics**: Environmental impact tracking
+- **📍 Map Integration**: Visual cleanup location tracking
+
+## 🚀 Vercel Deployment
+
+### Automatic Deployment
+1. Push code to GitHub repository
+2. Connect repository to Vercel dashboard
+3. Vercel automatically detects Node.js and deploys
+
+### Manual Configuration
+- `vercel.json` - Deployment configuration
+- `package.json` - Dependencies and build scripts
+- `.gitignore` - Excludes node_modules and build files
+
+## 📁 Project Structure
+
+```
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # UI components
+│   │   ├── hooks/         # Custom hooks (useAITranslation)
+│   │   ├── pages/         # Page components
+│   │   └── ...
+├── server/                # Node.js backend
+│   └── src/
+│       ├── routes/         # API routes
+│       ├── config/         # Database configuration
+│       └── ...
+├── vercel.json           # Vercel configuration
+├── package.json          # Dependencies and scripts
+└── README.md
+```
+
+## 🔧 Environment Variables
+
+Create `.env` file:
+```
+NODE_ENV=production
+PORT=5000
+DATABASE_URL=your_database_connection_string
+```
+
+## 🌐 API Endpoints
+
+- `GET /api/reports` - Get all cleanup reports
+- `POST /api/reports` - Submit new cleanup report
+- `GET /api/stats` - Get environmental statistics
+- `GET /` - Health check
+
+## 🏗️ Tech Stack
+
+### Frontend
+- React 18
+- React Router
+- Custom hooks (useAITranslation)
+- CSS-in-JS styling
+
+### Backend
+- Node.js
+- Express.js
+- MongoDB (Mongoose)
+- Sharp (image processing)
+- CORS enabled
+
+### Deployment
+- Vercel (serverless)
+- Git version control
+
+## 🌍 Languages Supported
+
+- 🇺🇸 English
+- 🇮🇳 Hindi (हिन्दी)
+- 🇱🇰 Tamil (தமிழ்)
+- 🇮🇳 Telugu (తెలుగు)
+
+## 📱 Usage
+
+1. **Select Language**: Choose preferred language from toggle buttons
+2. **Submit Cleanup**: Fill volunteer form with before/after photos
+3. **AI Analysis**: Automatic area calculation and eco points
+4. **Track Progress**: View leaderboard and environmental impact
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch
+3. Commit changes
+4. Push to fork
+5. Create pull request
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🌟 Environmental Impact
+
+Join us in making the world cleaner, one cleanup at a time! 🌱♻️
 
 ## Tech Stack
 
