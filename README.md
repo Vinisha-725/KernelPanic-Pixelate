@@ -1,45 +1,33 @@
-# Garbage Reporting System
+# Pixelate - Garbage Reporting System
 
-A full-stack web application for reporting and tracking garbage issues in communities using React, Node.js, and Supabase with PostGIS.
+A web application for reporting and tracking garbage issues in communities using React, Node.js, and Supabase with PostGIS.
 
 ## Tech Stack
 
 - **Frontend**: React (Vite), React Router, MapLibre GL JS
 - **Backend**: Node.js, Express.js
 - **Database**: Supabase (PostgreSQL with PostGIS)
-- **Styling**: CSS (ready for Tailwind CSS integration)
 
 ## Project Structure
 
 ```
-garbage-reporting-app/
 ├── client/                 # React frontend
 │   ├── src/
 │   │   ├── components/     # Reusable components
-│   │   │   ├── Map/        # Map-related components
-│   │   │   ├── Report/     # Report form components
-│   │   │   ├── Dashboard/  # Dashboard components
-│   │   │   └── Common/     # Shared components
 │   │   ├── pages/          # Page components
-│   │   ├── hooks/          # Custom React hooks
 │   │   ├── services/       # API services
 │   │   └── utils/          # Utility functions
 │   ├── package.json
 │   └── .env.example
 ├── server/                 # Node.js backend
 │   ├── src/
-│   │   ├── config/         # Configuration files
-│   │   ├── controllers/    # Route controllers
-│   │   ├── routes/         # API routes
-│   │   ├── services/       # Business logic
-│   │   ├── middlewares/    # Express middleware
+│   │   ├── config/         # Database configuration
 │   │   ├── models/         # Data models
+│   │   ├── routes/         # API routes
 │   │   └── utils/          # Utility functions
 │   ├── package.json
 │   └── .env.example
-├── docs/                   # Documentation
-├── README.md
-└── .gitignore
+└── README.md
 ```
 
 ## Quick Start
@@ -47,26 +35,27 @@ garbage-reporting-app/
 ### Prerequisites
 
 - Node.js (v16 or higher)
-- npm or yarn
-- Supabase account (for database setup)
+- npm 
+- Supabase account
 
 ### Installation
 
-1. **Clone and setup the project:**
+1. **Clone the repository:**
    ```bash
-   cd garbage-reporting-app
+   git clone https://github.com/Vinisha-725/KernelPanic-Pixelate.git
+   cd KernelPanic-Pixelate
    ```
 
-2. **Install frontend dependencies:**
+2. **Install backend dependencies:**
    ```bash
-   cd client
+   cd server
    npm install
    cp .env.example .env
    ```
 
-3. **Install backend dependencies:**
+3. **Install frontend dependencies:**
    ```bash
-   cd ../server
+   cd ../client
    npm install
    cp .env.example .env
    ```
@@ -93,78 +82,83 @@ JWT_SECRET=your_super_secret_jwt_key_here
 
 ### Running the Application
 
-1. **Start the backend server:**
+1. **Configure environment variables:**
+   - Set up your Supabase URL and Service Key in `server/.env`
+   - Set up frontend environment variables in `client/.env`
+
+2. **Seed the database (optional):**
    ```bash
    cd server
-   npm run dev
+   npm run seed
    ```
 
-2. **Start the frontend development server:**
+3. **Start the backend server:**
    ```bash
-   cd client
    npm run dev
    ```
 
-3. **Access the application:**
+4. **Start the frontend development server:**
+   ```bash
+   cd ../client
+   npm run dev
+   ```
+
+5. **Access the application:**
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:5000
-   - Health check: http://localhost:5000/health
+   - Health check: http://localhost:5000/
 
 ## API Endpoints
 
 ### Reports
-- `GET /api/reports` - Get all reports
-- `GET /api/reports/:id` - Get single report
-- `POST /api/reports` - Create new report
-- `PUT /api/reports/:id` - Update report
+- `GET /api/reports` - Get all reports (supports filters: status, severity, limit, offset)
+- `GET /api/reports/:id` - Get single report by ID
+- `POST /api/reports` - Create new report (requires: latitude, longitude, severity, description)
+- `PUT /api/reports/:id/claim` - Volunteer claims a report (requires: volunteer_id)
+- `PUT /api/reports/:id/complete` - Mark report as cleaned
 - `DELETE /api/reports/:id` - Delete report
 
 ### Statistics
-- `GET /api/stats/overall` - Get overall statistics
-- `GET /api/stats/location` - Get location-based statistics
-- `GET /api/stats/trends` - Get trend data
+- `GET /api/stats/overall` - Get dashboard counts (total_reported, in_progress, cleaned)
+
+### Data Model
+Each report includes:
+- `id` - Unique identifier
+- `latitude` - Location latitude
+- `longitude` - Location longitude  
+- `severity` - Low, Medium, or High
+- `status` - Reported, In Progress, or Cleaned
+- `description` - Report description
+- `photo_url` - Optional photo URL
+- `volunteer_id` - ID of volunteer who claimed the report
+- `created_at` - Timestamp when created
+- `updated_at` - Last update timestamp
 
 ## Features
 
 ### Current Implementation
-- ✅ Project structure and boilerplate
-- ✅ React Router setup
-- ✅ Express.js API structure
-- ✅ Component organization
-- ✅ Environment configuration
-- ✅ Error handling middleware
-- ✅ Validation middleware
-- ✅ Placeholder API services
+- ✅ Complete backend API with Supabase integration
+- ✅ Report CRUD operations (Create, Read, Update, Delete)
+- ✅ Volunteer claiming system
+- ✅ Status management (Reported, In Progress, Cleaned)
+- ✅ Severity levels (Low, Medium, High)
+- ✅ Location-based reporting (latitude, longitude)
+- ✅ Dashboard statistics
+- ✅ Database seeding with 5 dummy reports
+- ✅ Photo URL support
+- ✅ Proper validation and error handling
 
-### Future Development
-- 🔄 MapLibre GL JS integration
-- 🔄 Supabase database connection
-- 🔄 PostGIS spatial queries
-- 🔄 User authentication
-- 🔄 Image upload functionality
-- 🔄 Real-time updates
-- 🔄 Email notifications
-- 🔄 Advanced filtering and search
+### Frontend Status
+- 🔄 React scaffold created
+- 🔄 Basic component structure
+- 🔄 MapLibre GL JS integration pending
 
-## Development Guidelines
-
-### Code Organization
-- Follow the existing folder structure
-- Keep components small and focused
-- Use descriptive naming conventions
-- Add comments for complex logic
-
-### API Design
-- RESTful endpoints
-- Consistent response format
-- Proper error handling
-- Input validation
-
-### Database Design
-- Use PostgreSQL with PostGIS for spatial data
-- Implement proper indexing
-- Use UUIDs for primary keys
-- Include timestamps (created_at, updated_at)
+### Next Steps
+- 🔄 Complete MapLibre GL JS map implementation
+- 🔄 Connect frontend to backend API
+- 🔄 Implement real-time updates
+- 🔄 Add image upload functionality
+- 🔄 User authentication system
 
 ## Contributing
 
@@ -175,4 +169,4 @@ JWT_SECRET=your_super_secret_jwt_key_here
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under MIT License.
