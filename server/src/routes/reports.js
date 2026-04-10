@@ -60,14 +60,22 @@ router.get('/:id', async (req, res) => {
 // POST /api/reports - Create new report
 router.post('/', async (req, res) => {
   try {
-    const reportData = req.body
+    const { latitude, longitude, severity, description, photo_url } = req.body
     
     // Basic validation
-    if (!reportData.location || !reportData.category || !reportData.description) {
+    if (!latitude || !longitude || !severity || !description) {
       return res.status(400).json({
         success: false,
-        message: 'Location, category, and description are required'
+        message: 'Latitude, longitude, severity, and description are required'
       })
+    }
+
+    const reportData = {
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+      severity,
+      description,
+      photo_url
     }
 
     const report = await Report.create(reportData)
@@ -111,6 +119,77 @@ router.put('/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to update report',
+      error: error.message
+    })
+  }
+})
+
+// PUT /api/reports/:id/claim - Volunteer claims a report
+router.put('/:id/claim', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { volunteer_id } = req.body
+    
+    if (!volunteer_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Volunteer ID is required'
+      })
+    }
+
+    const report = await Report.update(id, {
+      status: 'In Progress',
+      volunteer_id
+    })
+    
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: 'Report not found'
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      data: report,
+      message: 'Report claimed successfully'
+    })
+  } catch (error) {
+    console.error('Error claiming report:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to claim report',
+      error: error.message
+    })
+  }
+})
+
+// PUT /api/reports/:id/complete - Mark report as cleaned
+router.put('/:id/complete', async (req, res) => {
+  try {
+    const { id } = req.params
+    
+    const report = await Report.update(id, {
+      status: 'Cleaned'
+    })
+    
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: 'Report not found'
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      data: report,
+      message: 'Report marked as cleaned'
+    })
+  } catch (error) {
+    console.error('Error completing report:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to complete report',
       error: error.message
     })
   }
