@@ -1,7 +1,7 @@
-import useLanguage from '../../hooks/useLanguage'
+import useAITranslation from '../../hooks/useAITranslation'
 
 const LanguageSelector = () => {
-  const { language, changeLanguage, getLanguageName, availableLanguages } = useLanguage()
+  const { language, changeLanguage, getLanguageName, availableLanguages } = useAITranslation()
 
   return (
     <div style={{ 

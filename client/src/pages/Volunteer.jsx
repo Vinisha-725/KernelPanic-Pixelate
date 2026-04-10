@@ -3,12 +3,10 @@ import Layout from '../components/Common/Layout'
 import VolunteerSubmission from '../components/Volunteer/VolunteerSubmission'
 import ImageAnalyzer from '../components/AIAnalysis/ImageAnalyzer'
 import Leaderboard from '../components/Leaderboard/Leaderboard'
-import useLanguage from '../hooks/useLanguage'
-import LanguageSelector from '../components/Common/LanguageSelector'
+import useAITranslation from '../hooks/useAITranslation'
 
 const Volunteer = () => {
-  const languageHook = useLanguage()
-  const t = languageHook?.t || ((key) => key) // Fallback if hook fails
+  const { t } = useAITranslation()
   const [activeTab, setActiveTab] = useState('submit') // 'submit', 'leaderboard', 'gallery'
   const [submissions, setSubmissions] = useState([])
   const [currentSubmission, setCurrentSubmission] = useState(null)
@@ -118,15 +116,6 @@ const Volunteer = () => {
       <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            marginBottom: '16px'
-          }}>
-            <div></div>
-            <LanguageSelector />
-          </div>
           <h1 style={{ fontSize: '2.5rem', margin: '0 0 8px 0', color: '#1f2937' }}>
             {t('volunteerHub')}
           </h1>

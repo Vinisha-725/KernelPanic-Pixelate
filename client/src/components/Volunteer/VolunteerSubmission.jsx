@@ -1,17 +1,8 @@
 import { useState } from 'react'
-import useLanguage from '../../hooks/useLanguage'
-import LanguageSelector from '../Common/LanguageSelector'
+import useAITranslation from '../../hooks/useAITranslation'
 
 const VolunteerSubmission = ({ onSubmit }) => {
-  const languageHook = useLanguage()
-  const t = languageHook?.t || ((key) => key) // Fallback if hook fails
-  const language = languageHook?.language || 'en'
-  const availableLanguages = languageHook?.availableLanguages || [
-    { code: 'en', name: 'English' },
-    { code: 'hi', name: 'Hindi' },
-    { code: 'ta', name: 'Tamil' },
-    { code: 'te', name: 'Telugu' }
-  ]
+  const { t, language, availableLanguages, isTranslating } = useAITranslation()
   const [formData, setFormData] = useState({
     volunteerName: '',
     volunteerPhone: '',
@@ -181,17 +172,9 @@ const VolunteerSubmission = ({ onSubmit }) => {
       maxWidth: '600px',
       margin: '0 auto'
     }}>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: '20px'
-      }}>
-        <h2 style={{ fontSize: '1.5rem', margin: 0, color: '#333' }}>
-          {t('volunteerCleanupReport')}
-        </h2>
-        <LanguageSelector />
-      </div>
+      <h2 style={{ fontSize: '1.5rem', marginBottom: '20px', color: '#333', textAlign: 'center' }}>
+        {t('volunteerCleanupReport')}
+      </h2>
       
       {error && (
         <div style={{

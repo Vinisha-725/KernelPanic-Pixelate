@@ -1,10 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import useLanguage from '../../hooks/useLanguage';
-import LanguageSelector from './LanguageSelector';
+import useAITranslation from '../../hooks/useAITranslation';
 
 function Navbar() {
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t } = useAITranslation();
 
   return (
     <nav className="navbar">
@@ -39,8 +38,6 @@ function Navbar() {
             {t('dashboard')}
           </Link>
         </div>
-        
-        <LanguageSelector />
       </div>
     </nav>
   );
