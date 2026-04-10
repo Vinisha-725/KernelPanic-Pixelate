@@ -4,7 +4,7 @@ function Layout({ children }) {
   return (
     <>
       <Navbar />
-      <div style={{ padding: '1rem' }}>
+      <div className="page-container">
         {children}
       </div>
     </>
