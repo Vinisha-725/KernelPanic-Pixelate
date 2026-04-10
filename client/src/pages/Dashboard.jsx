@@ -10,18 +10,72 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchReports()
+    
+    // Listen for storage changes (when new reports are added)
+    const handleStorageChange = (e) => {
+      if (e.key === 'testReports') {
+        console.log('Dashboard: Storage changed, refreshing reports')
+        fetchReports()
+      }
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
   }, [])
 
   const fetchReports = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/reports')
-      const data = await response.json()
+      console.log('Dashboard: Fetching reports...')
       
-      if (data.success) {
-        setReports(data.data)
+      // Try to get reports from localStorage (from test submissions)
+      const storedReports = JSON.parse(localStorage.getItem('testReports') || '[]')
+      console.log('Dashboard: Stored reports found:', storedReports.length)
+      
+      if (storedReports.length > 0) {
+        setReports(storedReports)
+        console.log('Dashboard: Using stored reports')
+      } else {
+        console.log('Dashboard: No stored reports found')
+      }
+      
+      // Also try to fetch from API if available
+      try {
+        const response = await fetch('http://localhost:5000/api/reports')
+        const data = await response.json()
+        
+        if (data.success && data.data.length > 0) {
+          setReports(data.data)
+          console.log('Dashboard: Using API reports:', data.data.length)
+        }
+      } catch (apiError) {
+        console.log('Dashboard: API not available, using stored data')
+      }
+      
+      // If still no reports, create a sample one for testing
+      if (storedReports.length === 0) {
+        console.log('Dashboard: Creating sample report for testing')
+        const sampleReport = {
+          id: 'sample_' + Date.now(),
+          latitude: 19.0760,
+          longitude: 72.8777,
+          severity: 'Medium',
+          description: 'Sample garbage report for testing - This is a test report to verify the dashboard is working properly',
+          photo_url: null,
+          city: 'Mumbai',
+          state: 'Maharashtra',
+          pincode: '400001',
+          complainant_name: 'Test User',
+          complainant_phone: '+91 9876543210',
+          status: 'Reported',
+          created_at: new Date().toISOString()
+        }
+        setReports([sampleReport])
       }
     } catch (error) {
-      console.error('Error fetching reports:', error)
+      console.error('Dashboard: Error fetching reports:', error)
     } finally {
       setLoading(false)
     }
@@ -79,9 +133,26 @@ const Dashboard = () => {
         {/* Main Content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
           {/* Header */}
-          <div style={{ marginBottom: '30px' }}>
-            <h1 style={{ fontSize: '2rem', marginBottom: '8px', color: '#333' }}>Garbage Management Dashboard</h1>
-            <p style={{ color: '#666', margin: 0 }}>Real-time monitoring and management of garbage reports</p>
+          <div style={{ marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h1 style={{ fontSize: '2rem', marginBottom: '8px', color: '#333' }}>Garbage Management Dashboard</h1>
+              <p style={{ color: '#666', margin: 0 }}>Real-time monitoring and management of garbage reports</p>
+            </div>
+            <button
+              onClick={fetchReports}
+              style={{
+                padding: '10px 20px',
+                background: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                fontWeight: '500'
+              }}
+            >
+              Refresh Data
+            </button>
           </div>
 
           {/* Statistics Cards */}
@@ -403,8 +474,8 @@ const Dashboard = () => {
             style={{
               background: 'white',
               borderRadius: '12px',
-              maxWidth: '800px',
-              width: '90%',
+              maxWidth: '900px',
+              width: '95%',
               maxHeight: '90vh',
               overflowY: 'auto'
             }}
@@ -414,18 +485,21 @@ const Dashboard = () => {
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center',
-              padding: '20px',
+              padding: '24px',
               borderBottom: '1px solid #e5e7eb'
             }}>
-              <h2 style={{ margin: 0, color: '#333' }}>Report Details</h2>
+              <h2 style={{ margin: 0, color: '#333', fontSize: '1.5rem' }}>Complete Report Details</h2>
               <button 
                 onClick={() => setSelectedReport(null)}
                 style={{
                   background: 'none',
                   border: 'none',
-                  fontSize: '24px',
+                  fontSize: '28px',
                   cursor: 'pointer',
-                  color: '#6b7280'
+                  color: '#6b7280',
+                  padding: '0',
+                  width: '32px',
+                  height: '32px'
                 }}
               >
                 ×
@@ -433,135 +507,245 @@ const Dashboard = () => {
             </div>
 
             {/* Content */}
-            <div style={{ padding: '20px' }}>
-              {/* Image */}
-              <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+            <div style={{ padding: '24px' }}>
+              {/* Image Section */}
+              <div style={{ marginBottom: '24px', textAlign: 'center' }}>
                 {selectedReport.photo_url ? (
-                  <img 
-                    src={selectedReport.photo_url} 
-                    alt="Garbage" 
-                    style={{ 
-                      maxWidth: '100%', 
-                      maxHeight: '400px', 
-                      borderRadius: '8px',
-                      objectFit: 'cover'
-                    }}
-                  />
+                  <div>
+                    <img 
+                      src={selectedReport.photo_url} 
+                      alt="Garbage Report" 
+                      style={{ 
+                        maxWidth: '100%', 
+                        maxHeight: '500px', 
+                        borderRadius: '12px',
+                        objectFit: 'cover',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                    <div style={{ marginTop: '8px', fontSize: '0.875rem', color: '#666' }}>
+                      Click image to view full size
+                    </div>
+                  </div>
                 ) : (
                   <div style={{ 
-                    height: '200px', 
-                    background: '#f3f4f6', 
-                    borderRadius: '8px',
+                    height: '300px', 
+                    background: '#f9fafb', 
+                    borderRadius: '12px',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#9ca3af'
+                    color: '#9ca3af',
+                    border: '2px dashed #e5e7eb'
                   }}>
-                    No Image Available
+                    <div style={{ fontSize: '4rem', marginBottom: '16px' }}>No Image</div>
+                    <div style={{ fontSize: '1.125rem' }}>No photo uploaded for this report</div>
                   </div>
                 )}
               </div>
 
-              {/* Details Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                <div>
-                  <h3 style={{ fontSize: '1rem', marginBottom: '12px', color: '#333' }}>Basic Information</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div>
-                      <span style={{ color: '#666', fontSize: '0.875rem' }}>Severity:</span>
-                      <span style={{ 
-                        marginLeft: '8px',
-                        background: getSeverityColor(selectedReport.severity),
-                        color: 'white',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        fontSize: '0.75rem'
-                      }}>
-                        {selectedReport.severity}
-                      </span>
-                    </div>
-                    <div>
-                      <span style={{ color: '#666', fontSize: '0.875rem' }}>Status:</span>
-                      <span style={{ 
-                        marginLeft: '8px',
-                        background: getStatusColor(selectedReport.status),
-                        color: 'white',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        fontSize: '0.75rem'
-                      }}>
-                        {selectedReport.status}
-                      </span>
-                    </div>
-                    <div>
-                      <span style={{ color: '#666', fontSize: '0.875rem' }}>Description:</span>
-                      <p style={{ margin: '4px 0 0 0', color: '#333' }}>{selectedReport.description}</p>
-                    </div>
-                  </div>
+              {/* Status & Severity Badges */}
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                <div style={{
+                  background: getSeverityColor(selectedReport.severity),
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  fontSize: '0.875rem',
+                  fontWeight: 'bold'
+                }}>
+                  {selectedReport.severity} Severity
                 </div>
+                <div style={{
+                  background: getStatusColor(selectedReport.status),
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  fontSize: '0.875rem',
+                  fontWeight: 'bold'
+                }}>
+                  {selectedReport.status}
+                </div>
+              </div>
 
-                <div>
-                  <h3 style={{ fontSize: '1rem', marginBottom: '12px', color: '#333' }}>Location Information</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {/* Description */}
+              <div style={{ marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '1.125rem', marginBottom: '12px', color: '#333' }}>Description</h3>
+                <p style={{ 
+                  margin: 0, 
+                  color: '#333', 
+                  lineHeight: '1.6',
+                  fontSize: '1rem',
+                  padding: '16px',
+                  background: '#f9fafb',
+                  borderRadius: '8px'
+                }}>
+                  {selectedReport.description}
+                </p>
+              </div>
+
+              {/* Details Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+                {/* Location Details */}
+                <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '12px' }}>
+                  <h3 style={{ fontSize: '1.125rem', marginBottom: '16px', color: '#333', display: 'flex', alignItems: 'center' }}>
+                    <span style={{ marginRight: '8px' }}>Location</span>
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div>
-                      <span style={{ color: '#666', fontSize: '0.875rem' }}>Coordinates:</span>
-                      <div style={{ color: '#333', fontSize: '0.875rem' }}>
+                      <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Coordinates</div>
+                      <div style={{ color: '#333', fontSize: '0.875rem', fontFamily: 'monospace' }}>
                         {selectedReport.latitude.toFixed(6)}, {selectedReport.longitude.toFixed(6)}
                       </div>
                     </div>
                     {selectedReport.city && (
                       <div>
-                        <span style={{ color: '#666', fontSize: '0.875rem' }}>City:</span>
+                        <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>City</div>
                         <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.city}</div>
                       </div>
                     )}
                     {selectedReport.state && (
                       <div>
-                        <span style={{ color: '#666', fontSize: '0.875rem' }}>State:</span>
+                        <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>State</div>
                         <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.state}</div>
                       </div>
                     )}
                     {selectedReport.pincode && (
                       <div>
-                        <span style={{ color: '#666', fontSize: '0.875rem' }}>Pincode:</span>
+                        <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Pincode</div>
                         <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.pincode}</div>
                       </div>
                     )}
+                    {selectedReport.landmark && (
+                      <div>
+                        <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Landmark</div>
+                        <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.landmark}</div>
+                      </div>
+                    )}
+                    {selectedReport.address && (
+                      <div>
+                        <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Full Address</div>
+                        <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.address}</div>
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {/* Complainant Details */}
+                {(selectedReport.complainant_name || selectedReport.complainant_phone || selectedReport.complainant_email) && (
+                  <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '12px' }}>
+                    <h3 style={{ fontSize: '1.125rem', marginBottom: '16px', color: '#333' }}>Reported By</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {selectedReport.complainant_name && (
+                        <div>
+                          <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Name</div>
+                          <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.complainant_name}</div>
+                        </div>
+                      )}
+                      {selectedReport.complainant_phone && (
+                        <div>
+                          <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Phone</div>
+                          <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.complainant_phone}</div>
+                        </div>
+                      )}
+                      {selectedReport.complainant_email && (
+                        <div>
+                          <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Email</div>
+                          <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.complainant_email}</div>
+                        </div>
+                      )}
+                      {selectedReport.complainant_address && (
+                        <div>
+                          <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Address</div>
+                          <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.complainant_address}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Garbage Details */}
+                {(selectedReport.garbage_type || selectedReport.estimated_quantity || selectedReport.accessibility) && (
+                  <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '12px' }}>
+                    <h3 style={{ fontSize: '1.125rem', marginBottom: '16px', color: '#333' }}>Garbage Details</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {selectedReport.garbage_type && (
+                        <div>
+                          <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Type</div>
+                          <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.garbage_type}</div>
+                        </div>
+                      )}
+                      {selectedReport.estimated_quantity && (
+                        <div>
+                          <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Estimated Quantity</div>
+                          <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.estimated_quantity}</div>
+                        </div>
+                      )}
+                      {selectedReport.accessibility && (
+                        <div>
+                          <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Accessibility</div>
+                          <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.accessibility}</div>
+                        </div>
+                      )}
+                      {selectedReport.nearby_landmark && (
+                        <div>
+                          <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Nearby Landmark</div>
+                          <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.nearby_landmark}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Volunteer Event Details */}
+                {selectedReport.organize_event && (
+                  <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '12px' }}>
+                    <h3 style={{ fontSize: '1.125rem', marginBottom: '16px', color: '#333' }}>Volunteer Event</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {selectedReport.event_date && (
+                        <div>
+                          <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Event Date</div>
+                          <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.event_date}</div>
+                        </div>
+                      )}
+                      {selectedReport.event_time && (
+                        <div>
+                          <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Event Time</div>
+                          <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.event_time}</div>
+                        </div>
+                      )}
+                      {selectedReport.expected_volunteers && (
+                        <div>
+                          <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Expected Volunteers</div>
+                          <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.expected_volunteers}</div>
+                        </div>
+                      )}
+                      {selectedReport.special_requirements && (
+                        <div>
+                          <div style={{ color: '#666', fontSize: '0.875rem', marginBottom: '4px' }}>Special Requirements</div>
+                          <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.special_requirements}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Additional Details */}
-              {selectedReport.complainant_name && (
-                <div style={{ marginTop: '20px' }}>
-                  <h3 style={{ fontSize: '1rem', marginBottom: '12px', color: '#333' }}>Reported By</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {selectedReport.complainant_name && (
-                      <div>
-                        <span style={{ color: '#666', fontSize: '0.875rem' }}>Name:</span>
-                        <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.complainant_name}</div>
-                      </div>
-                    )}
-                    {selectedReport.complainant_phone && (
-                      <div>
-                        <span style={{ color: '#666', fontSize: '0.875rem' }}>Phone:</span>
-                        <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.complainant_phone}</div>
-                      </div>
-                    )}
-                    {selectedReport.complainant_email && (
-                      <div>
-                        <span style={{ color: '#666', fontSize: '0.875rem' }}>Email:</span>
-                        <div style={{ color: '#333', fontSize: '0.875rem' }}>{selectedReport.complainant_email}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* Timestamp */}
-              <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+              <div style={{ 
+                marginTop: '24px', 
+                paddingTop: '24px', 
+                borderTop: '1px solid #e5e7eb',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
                 <div style={{ color: '#666', fontSize: '0.875rem' }}>
-                  Reported on: {new Date(selectedReport.created_at).toLocaleString()}
+                  <strong>Reported on:</strong> {new Date(selectedReport.created_at).toLocaleString()}
+                </div>
+                <div style={{ color: '#666', fontSize: '0.75rem' }}>
+                  ID: {selectedReport.id}
                 </div>
               </div>
             </div>
