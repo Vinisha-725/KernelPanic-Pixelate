@@ -49,6 +49,8 @@ class Report {
 
   static async create(reportData) {
     try {
+      console.log('Report.create called with:', reportData)
+      
       const { data, error } = await supabase
         .from('reports')
         .insert([{
@@ -57,7 +59,6 @@ class Report {
           severity: reportData.severity || 'Medium',
           status: reportData.status || 'Reported',
           photo_url: reportData.photo_url || null,
-          volunteer_id: reportData.volunteer_id || null,
           description: reportData.description || '',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -65,7 +66,11 @@ class Report {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+      console.log('Supabase success:', data)
       return data
     } catch (error) {
       console.error('Error creating report:', error)

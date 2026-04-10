@@ -1,10 +1,7 @@
-<<<<<<< HEAD
 import { useState } from 'react'
 
-const ReportForm = ({ onSubmit, onClose }) => {
+const ReportForm = ({ onSubmit, onClose, selectedLocation }) => {
   const [formData, setFormData] = useState({
-    latitude: '',
-    longitude: '',
     severity: 'Medium',
     description: '',
     photo_url: ''
@@ -26,11 +23,20 @@ const ReportForm = ({ onSubmit, onClose }) => {
     setLoading(true)
     setError(null)
 
+    if (!selectedLocation) {
+      setError('Please select a location on the map first')
+      setLoading(false)
+      return
+    }
+
     try {
-      await onSubmit(formData)
+      const reportData = {
+        ...formData,
+        latitude: selectedLocation.lat,
+        longitude: selectedLocation.lng
+      }
+      await onSubmit(reportData)
       setFormData({
-        latitude: '',
-        longitude: '',
         severity: 'Medium',
         description: '',
         photo_url: ''
@@ -66,7 +72,7 @@ const ReportForm = ({ onSubmit, onClose }) => {
     <div className="report-form-overlay">
       <div className="report-form">
         <div className="form-header">
-          <h3>📍 Report Garbage Spot</h3>
+          <h3>Report Garbage Spot</h3>
           <button onClick={onClose} className="close-btn">×</button>
         </div>
 
@@ -78,34 +84,22 @@ const ReportForm = ({ onSubmit, onClose }) => {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Location</label>
-            <div className="location-inputs">
-              <input
-                type="number"
-                name="latitude"
-                placeholder="Latitude"
-                value={formData.latitude}
-                onChange={handleChange}
-                step="any"
-                required
-              />
-              <input
-                type="number"
-                name="longitude"
-                placeholder="Longitude"
-                value={formData.longitude}
-                onChange={handleChange}
-                step="any"
-                required
-              />
-              <button 
-                type="button" 
-                onClick={getCurrentLocation}
-                className="location-btn"
-                title="Use current location"
-              >
-                📍
-              </button>
+            <label>Selected Location</label>
+            <div className="selected-location">
+              {selectedLocation ? (
+                <div className="location-display">
+                  <span className="location-coords">
+                    {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                  </span>
+                  <span className="location-hint">
+                    Click on the map to change location
+                  </span>
+                </div>
+              ) : (
+                <div className="location-prompt">
+                  <span>Click on the map to select a location</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -141,7 +135,7 @@ const ReportForm = ({ onSubmit, onClose }) => {
               disabled={loading}
               className="btn btn-primary"
             >
-              {loading ? 'Submitting...' : '🗑️ Submit Report'}
+              {loading ? 'Submitting...' : 'Submit Report'}
             </button>
           </div>
         </form>
@@ -265,19 +259,35 @@ const ReportForm = ({ onSubmit, onClose }) => {
         .btn-primary:hover:not(:disabled) {
           background: #2563eb;
         }
+        .selected-location {
+          padding: 12px;
+          border: 2px dashed #d1d5db;
+          border-radius: 8px;
+          background: #f9fafb;
+        }
+        .location-display {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .location-coords {
+          font-family: monospace;
+          font-size: 14px;
+          color: #374151;
+          font-weight: 600;
+        }
+        .location-hint {
+          font-size: 12px;
+          color: #6b7280;
+        }
+        .location-prompt {
+          text-align: center;
+          color: #6b7280;
+          font-style: italic;
+        }
       `}</style>
     </div>
   )
-=======
-function ReportForm() {
-  return (
-    <form>
-      <input placeholder="Location" />
-      <textarea placeholder="Description" />
-      <button type="submit">Submit</button>
-    </form>
-  );
->>>>>>> d73e059974726f1855eb8e2ce0bcfbd76320b3a1
 }
 
 export default ReportForm;

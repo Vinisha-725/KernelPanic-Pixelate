@@ -60,10 +60,20 @@ router.get('/:id', async (req, res) => {
 // POST /api/reports - Create new report
 router.post('/', async (req, res) => {
   try {
-    const { latitude, longitude, severity, description, photo_url } = req.body
+    console.log('Received report data:', req.body)
+    
+    const { 
+      latitude, 
+      longitude, 
+      severity, 
+      description, 
+      photo_url,
+      status
+    } = req.body
     
     // Basic validation
     if (!latitude || !longitude || !severity || !description) {
+      console.log('Validation failed - missing required fields')
       return res.status(400).json({
         success: false,
         message: 'Latitude, longitude, severity, and description are required'
@@ -75,10 +85,14 @@ router.post('/', async (req, res) => {
       longitude: parseFloat(longitude),
       severity,
       description,
-      photo_url
+      photo_url: photo_url || null,
+      status: status || 'Reported'
     }
 
+    console.log('Cleaned report data:', reportData)
     const report = await Report.create(reportData)
+    console.log('Report created successfully:', report)
+    
     res.status(201).json({
       success: true,
       data: report,
@@ -86,6 +100,12 @@ router.post('/', async (req, res) => {
     })
   } catch (error) {
     console.error('Error creating report:', error)
+    console.error('Full error details:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    })
     res.status(500).json({
       success: false,
       message: 'Failed to create report',

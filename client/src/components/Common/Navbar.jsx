@@ -8,6 +8,7 @@ function Navbar() {
       <div>
         <Link to="/">Home</Link> |{' '}
         <Link to="/report">Report</Link> |{' '}
+        <Link to="/cases">Cases</Link> |{' '}
         <Link to="/dashboard">Dashboard</Link>
       </div>
     </nav>
