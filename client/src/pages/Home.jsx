@@ -1,13 +1,11 @@
-import MapView from '../components/Map/MapView'
+import Layout from '../components/Common/Layout';
 
-const Home = () => {
+function Home() {
   return (
-    <div>
-      <h2>Garbage Reporting Map</h2>
-      <p>View and report garbage issues in your area</p>
-      <MapView />
-    </div>
-  )
+    <Layout>
+      <h1>Home</h1>
+    </Layout>
+  );
 }
 
-export default Home
+export default Home;

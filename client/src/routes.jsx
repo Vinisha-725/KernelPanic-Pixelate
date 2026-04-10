@@ -1,16 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
-
-function Home() {
-  return <h1>Home</h1>;
-}
-
-function Report() {
-  return <h1>Report Page</h1>;
-}
-
-function Dashboard() {
-  return <h1>Dashboard</h1>;
-}
+import Home from './pages/Home';
+import Report from './pages/Report';
+import Dashboard from './pages/Dashboard';
 
 function AppRoutes() {
   return (
