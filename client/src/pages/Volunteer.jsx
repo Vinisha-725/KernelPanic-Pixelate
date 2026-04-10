@@ -6,7 +6,7 @@ import Leaderboard from '../components/Leaderboard/Leaderboard'
 import useAITranslation from '../hooks/useAITranslation'
 
 const Volunteer = () => {
-  const { t } = useAITranslation()
+  const { t, changeLanguage, language } = useAITranslation()
   const [activeTab, setActiveTab] = useState('submit') // 'submit', 'leaderboard', 'gallery'
   const [submissions, setSubmissions] = useState([])
   const [currentSubmission, setCurrentSubmission] = useState(null)
@@ -114,14 +114,68 @@ const Volunteer = () => {
   return (
     <Layout>
       <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h1 style={{ fontSize: '2.5rem', margin: '0 0 8px 0', color: '#1f2937' }}>
-            {t('volunteerHub')}
-          </h1>
-          <p style={{ margin: 0, color: '#6b7280', fontSize: '1.125rem' }}>
-            {t('joinCommunity')}
-          </p>
+        {/* Language Toggle */}
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <button
+            onClick={() => changeLanguage('en')}
+            style={{
+              padding: '8px 16px',
+              margin: '0 4px',
+              border: language === 'en' ? '2px solid #3b82f6' : '1px solid #d1d5db',
+              borderRadius: '6px',
+              background: language === 'en' ? '#3b82f6' : 'white',
+              color: language === 'en' ? 'white' : '#374151',
+              fontSize: '0.875rem',
+              cursor: 'pointer'
+            }}
+          >
+            English
+          </button>
+          <button
+            onClick={() => changeLanguage('hi')}
+            style={{
+              padding: '8px 16px',
+              margin: '0 4px',
+              border: language === 'hi' ? '2px solid #3b82f6' : '1px solid #d1d5db',
+              borderRadius: '6px',
+              background: language === 'hi' ? '#3b82f6' : 'white',
+              color: language === 'hi' ? 'white' : '#374151',
+              fontSize: '0.875rem',
+              cursor: 'pointer'
+            }}
+          >
+            {language === 'hi' ? 'Hindi' : 'Hindi'}
+          </button>
+          <button
+            onClick={() => changeLanguage('te')}
+            style={{
+              padding: '8px 16px',
+              margin: '0 4px',
+              border: language === 'te' ? '2px solid #3b82f6' : '1px solid #d1d5db',
+              borderRadius: '6px',
+              background: language === 'te' ? '#3b82f6' : 'white',
+              color: language === 'te' ? 'white' : '#374151',
+              fontSize: '0.875rem',
+              cursor: 'pointer'
+            }}
+          >
+            {language === 'te' ? 'Telugu' : 'Telugu'}
+          </button>
+          <button
+            onClick={() => changeLanguage('ta')}
+            style={{
+              padding: '8px 16px',
+              margin: '0 4px',
+              border: language === 'ta' ? '2px solid #3b82f6' : '1px solid #d1d5db',
+              borderRadius: '6px',
+              background: language === 'ta' ? '#3b82f6' : 'white',
+              color: language === 'ta' ? 'white' : '#374151',
+              fontSize: '0.875rem',
+              cursor: 'pointer'
+            }}
+          >
+            {language === 'ta' ? 'Tamil' : 'Tamil'}
+          </button>
         </div>
 
         {/* Tab Navigation */}
