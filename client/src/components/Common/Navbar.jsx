@@ -1,7 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
+import useLanguage from '../../hooks/useLanguage';
+import LanguageSelector from './LanguageSelector';
 
 function Navbar() {
   const location = useLocation();
+  const { t } = useLanguage();
 
   return (
     <nav className="navbar">
@@ -15,27 +18,29 @@ function Navbar() {
             to="/" 
             className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
           >
-            Home
+            {t('home')}
           </Link>
           <Link 
             to="/cases" 
             className={`nav-link ${location.pathname === '/cases' ? 'active' : ''}`}
           >
-            Cases
+            {t('cases')}
           </Link>
           <Link 
             to="/volunteer" 
             className={`nav-link ${location.pathname === '/volunteer' ? 'active' : ''}`}
           >
-            Volunteer
+            {t('volunteer')}
           </Link>
           <Link 
             to="/dashboard" 
             className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
           >
-            Dashboard
+            {t('dashboard')}
           </Link>
         </div>
+        
+        <LanguageSelector />
       </div>
     </nav>
   );

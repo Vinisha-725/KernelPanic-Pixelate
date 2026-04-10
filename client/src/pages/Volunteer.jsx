@@ -3,8 +3,12 @@ import Layout from '../components/Common/Layout'
 import VolunteerSubmission from '../components/Volunteer/VolunteerSubmission'
 import ImageAnalyzer from '../components/AIAnalysis/ImageAnalyzer'
 import Leaderboard from '../components/Leaderboard/Leaderboard'
+import useLanguage from '../hooks/useLanguage'
+import LanguageSelector from '../components/Common/LanguageSelector'
 
 const Volunteer = () => {
+  const languageHook = useLanguage()
+  const t = languageHook?.t || ((key) => key) // Fallback if hook fails
   const [activeTab, setActiveTab] = useState('submit') // 'submit', 'leaderboard', 'gallery'
   const [submissions, setSubmissions] = useState([])
   const [currentSubmission, setCurrentSubmission] = useState(null)
@@ -25,19 +29,62 @@ const Volunteer = () => {
 
   const handleSubmission = async (submissionData) => {
     try {
-      // Save to localStorage
-      const existingSubmissions = JSON.parse(localStorage.getItem('volunteerSubmissions') || '[]')
-      existingSubmissions.unshift(submissionData)
-      localStorage.setItem('volunteerSubmissions', JSON.stringify(existingSubmissions))
+      console.log('Volunteer: Starting submission...', submissionData)
       
-      setSubmissions(existingSubmissions)
+      // Save to localStorage with quota management
+      try {
+        const existingSubmissions = JSON.parse(localStorage.getItem('volunteerSubmissions') || '[]')
+        console.log('Volunteer: Existing submissions:', existingSubmissions.length)
+        
+        existingSubmissions.unshift(submissionData)
+        
+        // Keep only latest 20 submissions to save space
+        if (existingSubmissions.length > 20) {
+          existingSubmissions.splice(20)
+        }
+        
+        localStorage.setItem('volunteerSubmissions', JSON.stringify(existingSubmissions))
+        console.log('Volunteer: Successfully saved to localStorage')
+      } catch (storageError) {
+        console.error('Volunteer: Storage error:', storageError)
+        if (storageError.name === 'QuotaExceededError') {
+          // Clear old submissions and try again
+          const existingSubmissions = JSON.parse(localStorage.getItem('volunteerSubmissions') || '[]')
+          const recentSubmissions = existingSubmissions.slice(0, 10)
+          recentSubmissions.unshift(submissionData)
+          
+          try {
+            localStorage.setItem('volunteerSubmissions', JSON.stringify(recentSubmissions))
+            console.log('Volunteer: Saved with quota cleanup')
+          } catch (stillQuotaError) {
+            // If still exceeds quota, save without images
+            const submissionWithoutImages = { ...submissionData, beforeImage: null, afterImage: null }
+            recentSubmissions[0] = submissionWithoutImages
+            localStorage.setItem('volunteerSubmissions', JSON.stringify(recentSubmissions))
+            console.log('Volunteer: Saved without images')
+            alert('Storage full. Report saved without images.')
+          }
+        } else {
+          throw storageError
+        }
+      }
+      
+      setSubmissions(prev => {
+        const updated = [submissionData, ...prev]
+        console.log('Volunteer: Updated submissions state:', updated.length)
+        return updated
+      })
       setCurrentSubmission(submissionData)
       setShowAnalysis(true)
       
-      alert('Cleanup report submitted successfully! AI analysis will now calculate your eco points.')
+      // Use fallback message if translation not available
+      const successMessage = t ? t('submissionSuccess') : 'Cleanup report submitted successfully! AI analysis will now calculate your eco points.'
+      alert(successMessage)
+      console.log('Volunteer: Submission successful!')
     } catch (error) {
-      console.error('Error submitting cleanup:', error)
-      alert('Failed to submit cleanup report. Please try again.')
+      console.error('Volunteer: Error submitting cleanup:', error)
+      const errorMessage = t ? t('submitFailed') : 'Failed to submit cleanup report. Please try again.'
+      alert(errorMessage)
     }
   }
 
@@ -58,7 +105,7 @@ const Volunteer = () => {
       localStorage.setItem('volunteerSubmissions', JSON.stringify(updatedSubmissions))
       setSubmissions(updatedSubmissions)
       
-      alert(`Great work! You earned ${analysis.pointsAwarded} eco points for cleaning ${analysis.areaCleaned} m²!`)
+      alert(t('pointsEarned', { points: analysis.pointsAwarded, area: analysis.areaCleaned }))
     }
   }
 
@@ -71,11 +118,20 @@ const Volunteer = () => {
       <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: '16px'
+          }}>
+            <div></div>
+            <LanguageSelector />
+          </div>
           <h1 style={{ fontSize: '2.5rem', margin: '0 0 8px 0', color: '#1f2937' }}>
-            Volunteer Hub
+            {t('volunteerHub')}
           </h1>
           <p style={{ margin: 0, color: '#6b7280', fontSize: '1.125rem' }}>
-            Join our community of environmental heroes and make a difference
+            {t('joinCommunity')}
           </p>
         </div>
 
@@ -100,7 +156,7 @@ const Volunteer = () => {
               marginBottom: '-1px'
             }}
           >
-            Submit Cleanup
+            {t('submitCleanup')}
           </button>
           <button
             onClick={() => setActiveTab('leaderboard')}
@@ -116,7 +172,7 @@ const Volunteer = () => {
               marginBottom: '-1px'
             }}
           >
-            Leaderboard
+            {t('leaderboard')}
           </button>
           <button
             onClick={() => setActiveTab('gallery')}
@@ -129,10 +185,10 @@ const Volunteer = () => {
               fontSize: '1rem',
               fontWeight: activeTab === 'gallery' ? '600' : '400',
               cursor: 'pointer',
-              marginBottom: '-1px'
+                  marginBottom: '-1px'
             }}
           >
-            Success Gallery
+            {t('successGallery')}
           </button>
         </div>
 

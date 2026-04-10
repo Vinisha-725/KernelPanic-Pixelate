@@ -1,6 +1,17 @@
 import { useState } from 'react'
+import useLanguage from '../../hooks/useLanguage'
+import LanguageSelector from '../Common/LanguageSelector'
 
 const VolunteerSubmission = ({ onSubmit }) => {
+  const languageHook = useLanguage()
+  const t = languageHook?.t || ((key) => key) // Fallback if hook fails
+  const language = languageHook?.language || 'en'
+  const availableLanguages = languageHook?.availableLanguages || [
+    { code: 'en', name: 'English' },
+    { code: 'hi', name: 'Hindi' },
+    { code: 'ta', name: 'Tamil' },
+    { code: 'te', name: 'Telugu' }
+  ]
   const [formData, setFormData] = useState({
     volunteerName: '',
     volunteerPhone: '',
@@ -27,18 +38,57 @@ const VolunteerSubmission = ({ onSubmit }) => {
     setError(null)
   }
 
+  const compressImage = (dataUrl, callback) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      
+      // Calculate new dimensions (max 800px width/height)
+      let width = img.width
+      let height = img.height
+      const maxSize = 800
+      
+      if (width > height) {
+        if (width > maxSize) {
+          height = (height * maxSize) / width
+          width = maxSize
+        }
+      } else {
+        if (height > maxSize) {
+          width = (width * maxSize) / height
+          height = maxSize
+        }
+      }
+      
+      canvas.width = width
+      canvas.height = height
+      
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, width, height)
+      
+      // Convert to JPEG with 70% quality
+      const compressed = canvas.toDataURL('image/jpeg', 0.7)
+      callback(compressed)
+    }
+    img.src = dataUrl
+  }
+
   const handleBeforeImageUpload = (e) => {
     const file = e.target.files[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setError('Before image size should be less than 5MB')
+        setError(t('imageSizeError'))
         return
       }
       
       const reader = new FileReader()
       reader.onloadend = () => {
-        setBeforePreview(reader.result)
-        setFormData(prev => ({ ...prev, beforeImage: reader.result }))
+        // Compress image to reduce storage usage
+        compressImage(reader.result, (compressed) => {
+          setBeforePreview(compressed)
+          setFormData(prev => ({ ...prev, beforeImage: compressed }))
+        })
       }
       reader.readAsDataURL(file)
     }
@@ -48,14 +98,17 @@ const VolunteerSubmission = ({ onSubmit }) => {
     const file = e.target.files[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setError('After image size should be less than 5MB')
+        setError(t('imageSizeError'))
         return
       }
       
       const reader = new FileReader()
       reader.onloadend = () => {
-        setAfterPreview(reader.result)
-        setFormData(prev => ({ ...prev, afterImage: reader.result }))
+        // Compress image to reduce storage usage
+        compressImage(reader.result, (compressed) => {
+          setAfterPreview(compressed)
+          setFormData(prev => ({ ...prev, afterImage: compressed }))
+        })
       }
       reader.readAsDataURL(file)
     }
@@ -66,9 +119,12 @@ const VolunteerSubmission = ({ onSubmit }) => {
     setLoading(true)
     setError(null)
 
+    console.log('VolunteerSubmission: Starting form submission...')
+
     // Validation
     if (!formData.volunteerName || !formData.location || !formData.beforeImage || !formData.afterImage) {
-      setError('Please fill in all required fields and upload both images')
+      console.log('VolunteerSubmission: Validation failed')
+      setError(t('requiredFields'))
       setLoading(false)
       return
     }
@@ -81,8 +137,14 @@ const VolunteerSubmission = ({ onSubmit }) => {
         submittedAt: new Date().toISOString()
       }
       
-      console.log('Submitting volunteer cleanup:', submissionData)
+      console.log('VolunteerSubmission: Submitting data:', submissionData)
+      
+      if (!onSubmit) {
+        throw new Error('onSubmit function is not provided')
+      }
+      
       await onSubmit(submissionData)
+      console.log('VolunteerSubmission: onSubmit completed successfully')
       
       // Reset form
       setFormData({
@@ -102,9 +164,10 @@ const VolunteerSubmission = ({ onSubmit }) => {
       setBeforePreview(null)
       setAfterPreview(null)
       setLoading(false)
+      console.log('VolunteerSubmission: Form reset completed')
     } catch (err) {
-      console.error('Submit error:', err)
-      setError(err.message || 'Failed to submit cleanup report')
+      console.error('VolunteerSubmission: Submit error:', err)
+      setError(err.message || t('submitFailed'))
       setLoading(false)
     }
   }
@@ -118,9 +181,17 @@ const VolunteerSubmission = ({ onSubmit }) => {
       maxWidth: '600px',
       margin: '0 auto'
     }}>
-      <h2 style={{ fontSize: '1.5rem', marginBottom: '20px', color: '#333', textAlign: 'center' }}>
-        Volunteer Cleanup Report
-      </h2>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: '20px'
+      }}>
+        <h2 style={{ fontSize: '1.5rem', margin: 0, color: '#333' }}>
+          {t('volunteerCleanupReport')}
+        </h2>
+        <LanguageSelector />
+      </div>
       
       {error && (
         <div style={{
@@ -138,12 +209,12 @@ const VolunteerSubmission = ({ onSubmit }) => {
       <form onSubmit={handleSubmit}>
         {/* Volunteer Information */}
         <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '1.125rem', marginBottom: '12px', color: '#333' }}>Volunteer Information</h3>
+          <h3 style={{ fontSize: '1.125rem', marginBottom: '12px', color: '#333' }}>{t('volunteerInformation')}</h3>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.875rem', fontWeight: '500' }}>
-                Name *
+                {t('name')} *
               </label>
               <input 
                 type="text" 
@@ -151,7 +222,7 @@ const VolunteerSubmission = ({ onSubmit }) => {
                 value={formData.volunteerName} 
                 onChange={handleChange}
                 required
-                placeholder="Your name"
+                placeholder={t('namePlaceholder')}
                 style={{ 
                   width: '100%', 
                   padding: '8px', 
@@ -164,14 +235,14 @@ const VolunteerSubmission = ({ onSubmit }) => {
             
             <div>
               <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.875rem', fontWeight: '500' }}>
-                Phone
+                {t('phone')}
               </label>
               <input 
                 type="tel" 
                 name="volunteerPhone" 
                 value={formData.volunteerPhone} 
                 onChange={handleChange}
-                placeholder="+91 9876543210"
+                placeholder={t('phonePlaceholder')}
                 style={{ 
                   width: '100%', 
                   padding: '8px', 
@@ -185,14 +256,14 @@ const VolunteerSubmission = ({ onSubmit }) => {
 
           <div style={{ marginBottom: '12px' }}>
             <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.875rem', fontWeight: '500' }}>
-              Email
+              {t('email')}
             </label>
             <input 
               type="email" 
               name="volunteerEmail" 
               value={formData.volunteerEmail} 
               onChange={handleChange}
-              placeholder="your.email@example.com"
+              placeholder={t('emailPlaceholder')}
               style={{ 
                 width: '100%', 
                 padding: '8px', 
@@ -206,11 +277,11 @@ const VolunteerSubmission = ({ onSubmit }) => {
 
         {/* Cleanup Details */}
         <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '1.125rem', marginBottom: '12px', color: '#333' }}>Cleanup Details</h3>
+          <h3 style={{ fontSize: '1.125rem', marginBottom: '12px', color: '#333' }}>{t('cleanupDetails')}</h3>
           
           <div style={{ marginBottom: '12px' }}>
             <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.875rem', fontWeight: '500' }}>
-              Location *
+              {t('location')} *
             </label>
             <input 
               type="text" 
@@ -218,7 +289,7 @@ const VolunteerSubmission = ({ onSubmit }) => {
               value={formData.location} 
               onChange={handleChange}
               required
-              placeholder="e.g., Bandra West, Mumbai"
+              placeholder={t('locationPlaceholder')}
               style={{ 
                 width: '100%', 
                 padding: '8px', 
@@ -232,7 +303,7 @@ const VolunteerSubmission = ({ onSubmit }) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.875rem', fontWeight: '500' }}>
-                Date *
+                {t('date')} *
               </label>
               <input 
                 type="date" 
@@ -252,7 +323,7 @@ const VolunteerSubmission = ({ onSubmit }) => {
             
             <div>
               <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.875rem', fontWeight: '500' }}>
-                Time *
+                {t('time')} *
               </label>
               <input 
                 type="time" 
@@ -274,7 +345,7 @@ const VolunteerSubmission = ({ onSubmit }) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.875rem', fontWeight: '500' }}>
-                Area Size
+                {t('areaSize')}
               </label>
               <select 
                 name="areaSize" 
@@ -288,17 +359,17 @@ const VolunteerSubmission = ({ onSubmit }) => {
                   fontSize: '0.875rem'
                 }}
               >
-                <option value="">Select size</option>
-                <option value="small">Small (1-5 sq m)</option>
-                <option value="medium">Medium (5-20 sq m)</option>
-                <option value="large">Large (20-50 sq m)</option>
-                <option value="xlarge">Extra Large (50+ sq m)</option>
+                <option value="">{t('selectSize')}</option>
+                <option value="small">{t('small')}</option>
+                <option value="medium">{t('medium')}</option>
+                <option value="large">{t('large')}</option>
+                <option value="xlarge">{t('xlarge')}</option>
               </select>
             </div>
             
             <div>
               <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.875rem', fontWeight: '500' }}>
-                Waste Type
+                {t('wasteType')}
               </label>
               <select 
                 name="wasteType" 
@@ -312,18 +383,18 @@ const VolunteerSubmission = ({ onSubmit }) => {
                   fontSize: '0.875rem'
                 }}
               >
-                <option value="">Select type</option>
-                <option value="plastic">Plastic</option>
-                <option value="organic">Organic</option>
-                <option value="mixed">Mixed Waste</option>
-                <option value="construction">Construction</option>
-                <option value="electronic">E-Waste</option>
+                <option value="">{t('selectType')}</option>
+                <option value="plastic">{t('plastic')}</option>
+                <option value="organic">{t('organic')}</option>
+                <option value="mixed">{t('mixed')}</option>
+                <option value="construction">{t('construction')}</option>
+                <option value="electronic">{t('electronic')}</option>
               </select>
             </div>
             
             <div>
               <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.875rem', fontWeight: '500' }}>
-                Volunteers Count
+                {t('volunteersCount')}
               </label>
               <input 
                 type="number" 
@@ -345,13 +416,13 @@ const VolunteerSubmission = ({ onSubmit }) => {
 
           <div style={{ marginBottom: '12px' }}>
             <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.875rem', fontWeight: '500' }}>
-              Description
+              {t('description')}
             </label>
             <textarea 
               name="description" 
               value={formData.description} 
               onChange={handleChange}
-              placeholder="Describe the cleanup activity, challenges faced, etc."
+              placeholder={t('descriptionPlaceholder')}
               style={{ 
                 width: '100%', 
                 padding: '8px', 
@@ -367,12 +438,12 @@ const VolunteerSubmission = ({ onSubmit }) => {
 
         {/* Image Upload */}
         <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '1.125rem', marginBottom: '12px', color: '#333' }}>Photos *</h3>
+          <h3 style={{ fontSize: '1.125rem', marginBottom: '12px', color: '#333' }}>{t('photos')} *</h3>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: '500' }}>
-                Before Photo *
+                {t('beforePhoto')} *
               </label>
               <input 
                 type="file" 
@@ -412,7 +483,7 @@ const VolunteerSubmission = ({ onSubmit }) => {
             
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: '500' }}>
-                After Photo *
+                {t('afterPhoto')} *
               </label>
               <input 
                 type="file" 
@@ -469,7 +540,7 @@ const VolunteerSubmission = ({ onSubmit }) => {
             opacity: loading ? 0.7 : 1
           }}
         >
-          {loading ? 'Submitting...' : 'Submit Cleanup Report'}
+          {loading ? t('submitting') : t('submitCleanupReport')}
         </button>
       </form>
     </div>
