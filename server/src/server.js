@@ -1,15 +1,9 @@
 const app = require('./app')
-const { PORT } = require('./config/environment')
 
-const startServer = () => {
-  const port = PORT || 5000
-  
-  app.listen(port, () => {
-    console.log(`🚀 Server running on port ${port}`)
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`)
-  })
-}
+const PORT = process.env.PORT || 5000
 
-startServer()
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
 
 module.exports = app
