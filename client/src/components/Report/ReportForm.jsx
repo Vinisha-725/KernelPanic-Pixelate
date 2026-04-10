@@ -1,206 +1,272 @@
-import { useState } from 'react';
+import { useState } from 'react'
 
-function ReportForm() {
+const ReportForm = ({ onSubmit, onClose }) => {
   const [formData, setFormData] = useState({
-    location: '',
+    latitude: '',
+    longitude: '',
+    severity: 'Medium',
     description: '',
-    category: '',
-    urgency: 'medium',
-    contactName: '',
-    contactPhone: '',
-    contactEmail: '',
-    image: null
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Handle form submission here
-  };
+    photo_url: ''
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
-    }));
-  };
+    }))
+    setError(null)
+  }
 
-  const handleImageChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      image: e.target.files[0]
-    }));
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    try {
+      await onSubmit(formData)
+      setFormData({
+        latitude: '',
+        longitude: '',
+        severity: 'Medium',
+        description: '',
+        photo_url: ''
+      })
+      onClose()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData(prev => ({
+            ...prev,
+            latitude: position.coords.latitude.toFixed(6),
+            longitude: position.coords.longitude.toFixed(6)
+          }))
+        },
+        (error) => {
+          setError('Unable to get your location. Please enter manually.')
+        }
+      )
+    } else {
+      setError('Geolocation is not supported by your browser.')
+    }
+  }
 
   return (
-    <div className="card fade-in">
-      <div className="card-header">
-        <h3 className="card-title">📍 Report Garbage Issue</h3>
-      </div>
-      <div className="card-content">
+    <div className="report-form-overlay">
+      <div className="report-form">
+        <div className="form-header">
+          <h3>📍 Report Garbage Spot</h3>
+          <button onClick={onClose} className="close-btn">×</button>
+        </div>
+
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-6">
-            <div className="form-group">
-              <label className="form-label" htmlFor="location">
-                Location *
-              </label>
+          <div className="form-group">
+            <label>Location</label>
+            <div className="location-inputs">
               <input
-                type="text"
-                id="location"
-                name="location"
-                className="form-input"
-                placeholder="Enter the exact location or address"
-                value={formData.location}
+                type="number"
+                name="latitude"
+                placeholder="Latitude"
+                value={formData.latitude}
                 onChange={handleChange}
+                step="any"
                 required
               />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="category">
-                Category *
-              </label>
-              <select
-                id="category"
-                name="category"
-                className="form-select"
-                value={formData.category}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select a category</option>
-                <option value="illegal-dumping">Illegal Dumping</option>
-                <option value="overflowing-bin">Overflowing Bin</option>
-                <option value="street-cleaning">Street Cleaning Required</option>
-                <option value="debris-collection">Debris Collection</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="urgency">
-                Urgency Level
-              </label>
-              <select
-                id="urgency"
-                name="urgency"
-                className="form-select"
-                value={formData.urgency}
-                onChange={handleChange}
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="image">
-                Upload Photo
-              </label>
               <input
-                type="file"
-                id="image"
-                name="image"
-                className="form-input"
-                accept="image/*"
-                onChange={handleImageChange}
+                type="number"
+                name="longitude"
+                placeholder="Longitude"
+                value={formData.longitude}
+                onChange={handleChange}
+                step="any"
+                required
               />
+              <button 
+                type="button" 
+                onClick={getCurrentLocation}
+                className="location-btn"
+                title="Use current location"
+              >
+                📍
+              </button>
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="description">
-              Description *
-            </label>
+            <label>Severity</label>
+            <select
+              name="severity"
+              value={formData.severity}
+              onChange={handleChange}
+              required
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Description</label>
             <textarea
-              id="description"
               name="description"
-              className="form-textarea"
-              placeholder="Provide detailed description of the garbage issue..."
+              placeholder="Describe the garbage issue..."
               value={formData.description}
               onChange={handleChange}
               required
+              rows="3"
             />
           </div>
 
-          <div className="card" style={{ backgroundColor: 'var(--background)', marginBottom: '1.5rem' }}>
-            <div className="card-header">
-              <h4 className="card-title">Contact Information (Optional)</h4>
-            </div>
-            <div className="card-content">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="contactName">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    id="contactName"
-                    name="contactName"
-                    className="form-input"
-                    placeholder="Your name"
-                    value={formData.contactName}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label" htmlFor="contactPhone">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    id="contactPhone"
-                    name="contactPhone"
-                    className="form-input"
-                    placeholder="Your phone number"
-                    value={formData.contactPhone}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label" htmlFor="contactEmail">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="contactEmail"
-                    name="contactEmail"
-                    className="form-input"
-                    placeholder="Your email address"
-                    value={formData.contactEmail}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <button type="submit" className="btn btn-primary">
-              📤 Submit Report
-            </button>
-            <button type="button" className="btn btn-outline" onClick={() => setFormData({
-              location: '',
-              description: '',
-              category: '',
-              urgency: 'medium',
-              contactName: '',
-              contactPhone: '',
-              contactEmail: '',
-              image: null
-            })}>
-              🔄 Clear Form
+          <div className="form-actions">
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="btn btn-primary"
+            >
+              {loading ? 'Submitting...' : '🗑️ Submit Report'}
             </button>
           </div>
         </form>
       </div>
+
+      <style jsx>{`
+        .report-form-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+        .report-form {
+          background: white;
+          padding: 24px;
+          border-radius: 12px;
+          max-width: 500px;
+          width: 90%;
+          max-height: 80vh;
+          overflow-y: auto;
+        }
+        .form-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+        .form-header h3 {
+          margin: 0;
+          color: #333;
+        }
+        .close-btn {
+          background: none;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          color: #666;
+          padding: 0;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .close-btn:hover {
+          color: #333;
+        }
+        .error-message {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #dc2626;
+          padding: 12px;
+          border-radius: 6px;
+          margin-bottom: 16px;
+        }
+        .form-group {
+          margin-bottom: 16px;
+        }
+        .form-group label {
+          display: block;
+          margin-bottom: 6px;
+          font-weight: 600;
+          color: #333;
+        }
+        .location-inputs {
+          display: grid;
+          grid-template-columns: 1fr 1fr auto;
+          gap: 8px;
+        }
+        .location-inputs input {
+          padding: 8px;
+          border: 1px solid #d1d5db;
+          border-radius: 4px;
+          font-size: 14px;
+        }
+        .location-btn {
+          background: #3b82f6;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          padding: 8px;
+          cursor: pointer;
+        }
+        .form-group select,
+        .form-group textarea {
+          width: 100%;
+          padding: 8px;
+          border: 1px solid #d1d5db;
+          border-radius: 4px;
+          font-size: 14px;
+        }
+        .form-group textarea {
+          resize: vertical;
+        }
+        .form-actions {
+          margin-top: 20px;
+        }
+        .btn {
+          padding: 10px 16px;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 600;
+        }
+        .btn-primary {
+          background: #3b82f6;
+          color: white;
+          width: 100%;
+        }
+        .btn-primary:disabled {
+          background: #9ca3af;
+          cursor: not-allowed;
+        }
+        .btn-primary:hover:not(:disabled) {
+          background: #2563eb;
+        }
+      `}</style>
     </div>
-  );
+  )
 }
 
 export default ReportForm;
