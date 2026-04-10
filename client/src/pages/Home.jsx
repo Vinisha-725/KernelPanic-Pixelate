@@ -119,7 +119,7 @@ const Home = () => {
 
   return (
     <Layout>
-      <div className="home">
+      <div style={{ position: 'relative', height: 'calc(100vh - 60px)' }}>
         <MapView 
           onMapClick={handleMapClick}
           onClaim={handleClaimReport}
