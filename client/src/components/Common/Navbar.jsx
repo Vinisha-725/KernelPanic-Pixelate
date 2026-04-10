@@ -24,6 +24,12 @@ function Navbar() {
             Cases
           </Link>
           <Link 
+            to="/volunteer" 
+            className={`nav-link ${location.pathname === '/volunteer' ? 'active' : ''}`}
+          >
+            Volunteer
+          </Link>
+          <Link 
             to="/dashboard" 
             className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
           >

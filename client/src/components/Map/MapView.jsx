@@ -38,7 +38,7 @@ const MapView = ({ onMapClick, onClaim, onComplete }) => {
     fetchReports()
 
     // Listen for storage changes (when new reports are added)
-    const handleStorageChange = (e) => {
+    const handleStorageChange = (e) => {w
       if (e.key === 'testReports') {
         fetchReports() // Refresh markers when reports change
       }
