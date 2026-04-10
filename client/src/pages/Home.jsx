@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import MapView from '../components/Map/MapView'
-import SimpleReportForm from '../components/Report/SimpleReportForm'
+import ComprehensiveReportForm from '../components/Report/ComprehensiveReportForm'
 import MapSearch from '../components/Map/MapSearch'
 import MapControls from '../components/Map/MapControls'
 import useReports from '../hooks/useReports'
@@ -137,7 +137,7 @@ const Home = () => {
         />
         
         {showReportForm && (
-          <SimpleReportForm 
+          <ComprehensiveReportForm 
             onSubmit={handleSubmitReport}
             onClose={handleCloseReportForm}
             selectedLocation={selectedLocation}

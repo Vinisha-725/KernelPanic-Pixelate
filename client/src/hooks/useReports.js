@@ -25,12 +25,11 @@ const useReports = () => {
     }
   }, [])
 
-  const createReport = useCallback(async (reportData) => {
-    setLoading(true)
-    setError(null)
-    
+  const createReport = async (reportData) => {
     try {
-      const response = await fetch('http://localhost:5000/api/reports', {
+      console.log('Creating report with data:', reportData)
+      
+      const response = await fetch('http://localhost:5000/api/test/test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,21 +38,19 @@ const useReports = () => {
       })
       
       const data = await response.json()
+      console.log('Response:', data)
       
-      if (data.success) {
-        setReports(prev => [data.data, ...prev])
-        return data.data
-      } else {
-        setError(data.message || 'Failed to create report')
-        throw new Error(data.message)
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create report')
       }
-    } catch (err) {
-      setError(err.message || 'Network error')
-      throw err
-    } finally {
-      setLoading(false)
+      
+      setReports(prev => [...prev, data.data])
+      return data.data
+    } catch (error) {
+      console.error('Error creating report:', error)
+      throw error
     }
-  }, [])
+  }
 
   const claimReport = useCallback(async (reportId, volunteerId) => {
     setLoading(true)

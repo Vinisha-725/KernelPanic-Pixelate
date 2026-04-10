@@ -13,9 +13,9 @@ const MapView = ({ onMapClick, onClaim, onComplete }) => {
     // Initialize MapLibre GL JS
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: 'https://demotiles.maplibre.org/style.json',
+      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
       center: [78.9629, 20.5937], // Center of India
-      zoom: 5,
+      zoom: 4.5,
       attributionControl: false
     })
 
