@@ -11,8 +11,8 @@ class Report {
       if (filters.status) {
         query = query.eq('status', filters.status)
       }
-      if (filters.category) {
-        query = query.eq('category', filters.category)
+      if (filters.severity) {
+        query = query.eq('severity', filters.severity)
       }
       if (filters.limit) {
         query = query.limit(filters.limit)
@@ -52,8 +52,13 @@ class Report {
       const { data, error } = await supabase
         .from('reports')
         .insert([{
-          ...reportData,
-          status: reportData.status || 'pending',
+          latitude: reportData.latitude,
+          longitude: reportData.longitude,
+          severity: reportData.severity || 'Medium',
+          status: reportData.status || 'Reported',
+          photo_url: reportData.photo_url || null,
+          volunteer_id: reportData.volunteer_id || null,
+          description: reportData.description || '',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }])
@@ -111,24 +116,24 @@ class Report {
 
       if (totalError) throw totalError
 
-      const { data: resolvedReports, error: resolvedError } = await supabase
+      const { data: inProgressReports, error: inProgressError } = await supabase
         .from('reports')
         .select('id', { count: 'exact', head: true })
-        .eq('status', 'resolved')
+        .eq('status', 'In Progress')
 
-      if (resolvedError) throw resolvedError
+      if (inProgressError) throw inProgressError
 
-      const { data: pendingReports, error: pendingError } = await supabase
+      const { data: cleanedReports, error: cleanedError } = await supabase
         .from('reports')
         .select('id', { count: 'exact', head: true })
-        .eq('status', 'pending')
+        .eq('status', 'Cleaned')
 
-      if (pendingError) throw pendingError
+      if (cleanedError) throw cleanedError
 
       return {
-        total: totalReports || 0,
-        resolved: resolvedReports || 0,
-        pending: pendingReports || 0
+        total_reported: totalReports || 0,
+        in_progress: inProgressReports || 0,
+        cleaned: cleanedReports || 0
       }
     } catch (error) {
       console.error('Error fetching stats:', error)
