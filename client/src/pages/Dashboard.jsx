@@ -141,7 +141,7 @@ const Dashboard = () => {
 
           {/* Reports Grid */}
           <div>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '20px', color: '#333' }}>Recent Reports</h2>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '20px', color: '#333' }}>All Reports</h2>
             {reports.length === 0 ? (
               <div style={{ 
                 background: 'white', 
@@ -152,10 +152,10 @@ const Dashboard = () => {
                 color: '#666'
               }}>
                 <div style={{ fontSize: '3rem', marginBottom: '16px' }}>No reports yet</div>
-                <div>Start by adding your first garbage report</div>
+                <div>Start by adding your first garbage report using the side panel</div>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
                 {reports.map(report => (
                   <div 
                     key={report.id}
@@ -166,29 +166,37 @@ const Dashboard = () => {
                       overflow: 'hidden',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                       cursor: 'pointer',
-                      transition: 'transform 0.2s'
+                      transition: 'transform 0.2s, box-shadow 0.2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)'
+                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)'
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
+                    }}
                   >
-                    {/* Image Section */}
-                    <div style={{ height: '180px', background: '#f3f4f6', position: 'relative' }}>
+                    {/* Image Section - Main Focus */}
+                    <div style={{ height: '200px', background: '#f3f4f6', position: 'relative' }}>
                       {report.photo_url ? (
                         <img 
                           src={report.photo_url} 
-                          alt="Garbage" 
+                          alt="Garbage Report" 
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (
                         <div style={{ 
                           display: 'flex', 
+                          flexDirection: 'column',
                           alignItems: 'center', 
                           justifyContent: 'center', 
                           height: '100%',
                           color: '#9ca3af',
                           fontSize: '1.125rem'
                         }}>
-                          No Image
+                          <div style={{ fontSize: '3rem', marginBottom: '8px' }}>No Image</div>
+                          <div>Click to view details</div>
                         </div>
                       )}
                       
@@ -199,58 +207,93 @@ const Dashboard = () => {
                         right: '10px',
                         background: getSeverityColor(report.severity),
                         color: 'white',
-                        padding: '4px 8px',
-                        borderRadius: '12px',
+                        padding: '6px 12px',
+                        borderRadius: '16px',
                         fontSize: '0.75rem',
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                       }}>
-                        {report.severity}
+                        {report.severity} Severity
+                      </div>
+
+                      {/* Status Badge */}
+                      <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        left: '10px',
+                        background: getStatusColor(report.status),
+                        color: 'white',
+                        padding: '6px 12px',
+                        borderRadius: '16px',
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      }}>
+                        {report.status}
                       </div>
                     </div>
                     
                     {/* Content Section */}
-                    <div style={{ padding: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                        <h3 style={{ margin: 0, fontSize: '1rem', color: '#333', flex: 1 }}>
-                          {report.description.substring(0, 50)}...
-                        </h3>
-                      </div>
-                      
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        marginBottom: '8px',
-                        fontSize: '0.875rem',
-                        color: '#666'
+                    <div style={{ padding: '20px' }}>
+                      <h3 style={{ 
+                        margin: '0 0 12px 0', 
+                        fontSize: '1.1rem', 
+                        color: '#333',
+                        fontWeight: '600',
+                        lineHeight: '1.4'
                       }}>
-                        <span style={{ marginRight: '8px' }}>Location:</span>
-                        <span>{report.latitude.toFixed(4)}, {report.longitude.toFixed(4)}</span>
+                        {report.description.length > 80 ? 
+                          report.description.substring(0, 80) + '...' : 
+                          report.description
+                        }
+                      </h3>
+                      
+                      {/* Location Info */}
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          marginBottom: '6px',
+                          fontSize: '0.875rem',
+                          color: '#666'
+                        }}>
+                          <span style={{ marginRight: '6px' }}>Location:</span>
+                          <span style={{ fontWeight: '500' }}>
+                            {report.city ? `${report.city}, ${report.state || ''}` : 
+                             `${report.latitude.toFixed(4)}, ${report.longitude.toFixed(4)}`}
+                          </span>
+                        </div>
+                        
+                        {report.pincode && (
+                          <div style={{ fontSize: '0.875rem', color: '#666' }}>
+                            <span style={{ marginRight: '6px' }}>Pincode:</span>
+                            <span>{report.pincode}</span>
+                          </div>
+                        )}
                       </div>
                       
-                      {report.city && (
-                        <div style={{ fontSize: '0.875rem', color: '#666', marginBottom: '8px' }}>
-                          <span style={{ marginRight: '8px' }}>City:</span>
-                          <span>{report.city}</span>
+                      {/* Additional Info */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #f3f4f6' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                          {new Date(report.created_at).toLocaleDateString()} at {new Date(report.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </div>
-                      )}
-                      
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
-                        <span 
-                          style={{
-                            background: getStatusColor(report.status),
-                            color: 'white',
-                            padding: '4px 8px',
-                            borderRadius: '12px',
-                            fontSize: '0.75rem',
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          {report.status}
-                        </span>
                         
-                        <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                          {new Date(report.created_at).toLocaleDateString()}
-                        </span>
+                        {report.complainant_name && (
+                          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                            By: {report.complainant_name}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Click to view hint */}
+                      <div style={{ 
+                        textAlign: 'center', 
+                        marginTop: '12px',
+                        fontSize: '0.75rem',
+                        color: '#3b82f6',
+                        fontWeight: '500'
+                      }}>
+                        Click to view full details
                       </div>
                     </div>
                   </div>

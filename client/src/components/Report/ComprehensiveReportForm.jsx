@@ -61,11 +61,50 @@ const ComprehensiveReportForm = ({ onSubmit, onClose, selectedLocation }) => {
       
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result)
-        setFormData(prev => ({ ...prev, photo_url: reader.result }))
+        // Compress image to reduce storage usage
+        compressImage(reader.result, (compressed) => {
+          setImagePreview(compressed)
+          setFormData(prev => ({ ...prev, photo_url: compressed }))
+        })
       }
       reader.readAsDataURL(file)
     }
+  }
+
+  const compressImage = (dataUrl, callback) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      
+      // Calculate new dimensions (max 800px width/height)
+      let width = img.width
+      let height = img.height
+      const maxSize = 800
+      
+      if (width > height) {
+        if (width > maxSize) {
+          height = (height * maxSize) / width
+          width = maxSize
+        }
+      } else {
+        if (height > maxSize) {
+          width = (width * maxSize) / height
+          height = maxSize
+        }
+      }
+      
+      canvas.width = width
+      canvas.height = height
+      
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, width, height)
+      
+      // Convert to JPEG with 70% quality
+      const compressed = canvas.toDataURL('image/jpeg', 0.7)
+      callback(compressed)
+    }
+    img.src = dataUrl
   }
 
   const getCurrentLocation = () => {
@@ -136,10 +175,38 @@ const ComprehensiveReportForm = ({ onSubmit, onClose, selectedLocation }) => {
       
       console.log('Submitting comprehensive report:', reportData)
       
-      // Save to localStorage for Cases page
-      const existingReports = JSON.parse(localStorage.getItem('testReports') || '[]')
-      existingReports.unshift(reportData) // Add to beginning
-      localStorage.setItem('testReports', JSON.stringify(existingReports))
+      // Save to localStorage for Cases page with quota management
+      try {
+        const existingReports = JSON.parse(localStorage.getItem('testReports') || '[]')
+        existingReports.unshift(reportData) // Add to beginning
+        
+        // Keep only the latest 20 reports to save space
+        if (existingReports.length > 20) {
+          existingReports.splice(20) // Remove oldest reports beyond 20
+        }
+        
+        localStorage.setItem('testReports', JSON.stringify(existingReports))
+      } catch (storageError) {
+        if (storageError.name === 'QuotaExceededError') {
+          // Clear old reports and try again
+          const existingReports = JSON.parse(localStorage.getItem('testReports') || '[]')
+          // Keep only the latest 10 reports
+          const recentReports = existingReports.slice(0, 10)
+          recentReports.unshift(reportData)
+          
+          try {
+            localStorage.setItem('testReports', JSON.stringify(recentReports))
+          } catch (stillQuotaError) {
+            // If still exceeds quota, save without image
+            const reportWithoutImage = { ...reportData, photo_url: null }
+            recentReports[0] = reportWithoutImage
+            localStorage.setItem('testReports', JSON.stringify(recentReports))
+            setError('Storage full. Report saved without image.')
+          }
+        } else {
+          throw storageError
+        }
+      }
       
       await onSubmit(reportData)
       
