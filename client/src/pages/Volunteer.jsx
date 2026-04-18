@@ -4,6 +4,7 @@ import VolunteerSubmission from '../components/Volunteer/VolunteerSubmission'
 import ImageAnalyzer from '../components/AIAnalysis/ImageAnalyzer'
 import Leaderboard from '../components/Leaderboard/Leaderboard'
 import useAITranslation from '../hooks/useAITranslation'
+import imageStorage from '../utils/imageStorage'
 
 const Volunteer = () => {
   const { t, changeLanguage, language } = useAITranslation()
@@ -29,41 +30,50 @@ const Volunteer = () => {
     try {
       console.log('Volunteer: Starting submission...', submissionData)
       
-      // Save to localStorage with quota management
+      // Save to localStorage (without images, just keys)
       try {
         const existingSubmissions = JSON.parse(localStorage.getItem('volunteerSubmissions') || '[]')
         console.log('Volunteer: Existing submissions:', existingSubmissions.length)
         
-        existingSubmissions.unshift(submissionData)
+        // Create submission with image keys (no base64 data)
+        const submissionWithKeys = {
+          ...submissionData,
+          beforeImage: submissionData.beforeImage, // Already a key
+          afterImage: submissionData.afterImage,   // Already a key
+          id: 'volunteer_' + Date.now(),
+          status: 'pending_analysis',
+          submittedAt: new Date().toISOString()
+        }
         
-        // Keep only latest 20 submissions to save space
-        if (existingSubmissions.length > 20) {
-          existingSubmissions.splice(20)
+        existingSubmissions.unshift(submissionWithKeys)
+        
+        // Keep only latest 50 submissions (no storage issues now)
+        if (existingSubmissions.length > 50) {
+          existingSubmissions.splice(50)
         }
         
         localStorage.setItem('volunteerSubmissions', JSON.stringify(existingSubmissions))
         console.log('Volunteer: Successfully saved to localStorage')
       } catch (storageError) {
         console.error('Volunteer: Storage error:', storageError)
-        if (storageError.name === 'QuotaExceededError') {
-          // Clear old submissions and try again
+        // Even localStorage can fail, so save minimal data
+        const minimalSubmission = {
+          id: 'volunteer_' + Date.now(),
+          volunteerName: submissionData.volunteerName,
+          location: submissionData.location,
+          submittedAt: new Date().toISOString(),
+          status: 'pending_analysis'
+        }
+        
+        try {
           const existingSubmissions = JSON.parse(localStorage.getItem('volunteerSubmissions') || '[]')
-          const recentSubmissions = existingSubmissions.slice(0, 10)
-          recentSubmissions.unshift(submissionData)
-          
-          try {
-            localStorage.setItem('volunteerSubmissions', JSON.stringify(recentSubmissions))
-            console.log('Volunteer: Saved with quota cleanup')
-          } catch (stillQuotaError) {
-            // If still exceeds quota, save without images
-            const submissionWithoutImages = { ...submissionData, beforeImage: null, afterImage: null }
-            recentSubmissions[0] = submissionWithoutImages
-            localStorage.setItem('volunteerSubmissions', JSON.stringify(recentSubmissions))
-            console.log('Volunteer: Saved without images')
-            alert('Storage full. Report saved without images.')
-          }
-        } else {
-          throw storageError
+          existingSubmissions.unshift(minimalSubmission)
+          localStorage.setItem('volunteerSubmissions', JSON.stringify(existingSubmissions))
+          console.log('Volunteer: Saved minimal submission')
+        } catch (finalError) {
+          console.error('Volunteer: Complete storage failure:', finalError)
+          alert('Storage completely full. Please clear browser data and try again.')
+          return
         }
       }
       
@@ -109,6 +119,17 @@ const Volunteer = () => {
 
   const getFilteredSubmissions = () => {
     return submissions.filter(sub => sub.status === 'completed' && sub.analysis)
+  }
+
+  // Load image from IndexedDB for display
+  const loadImageFromStorage = async (imageKey) => {
+    if (!imageKey) return null
+    try {
+      return await imageStorage.getImage(imageKey)
+    } catch (error) {
+      console.error('Error loading image:', error)
+      return null
+    }
   }
 
   return (

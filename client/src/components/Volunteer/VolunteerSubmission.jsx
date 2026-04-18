@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import useAITranslation from '../../hooks/useAITranslation'
+import imageStorage from '../../utils/imageStorage'
 
 const VolunteerSubmission = ({ onSubmit }) => {
   const { t, language, availableLanguages, isTranslating } = useAITranslation()
@@ -8,8 +9,8 @@ const VolunteerSubmission = ({ onSubmit }) => {
     volunteerPhone: '',
     volunteerEmail: '',
     location: '',
-    beforeImage: null,
-    afterImage: null,
+    beforeImage: null, // Will store image key
+    afterImage: null,   // Will store image key
     description: '',
     cleanupDate: new Date().toISOString().split('T')[0],
     cleanupTime: new Date().toTimeString().split(' ')[0].substring(0, 5),
@@ -29,43 +30,30 @@ const VolunteerSubmission = ({ onSubmit }) => {
     setError(null)
   }
 
-  const compressImage = (dataUrl, callback) => {
-    const img = new Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      
-      // Calculate new dimensions (max 800px width/height)
-      let width = img.width
-      let height = img.height
-      const maxSize = 800
-      
-      if (width > height) {
-        if (width > maxSize) {
-          height = (height * maxSize) / width
-          width = maxSize
-        }
-      } else {
-        if (height > maxSize) {
-          width = (width * maxSize) / height
-          height = maxSize
-        }
-      }
-      
-      canvas.width = width
-      canvas.height = height
-      
-      // Draw and compress
-      ctx.drawImage(img, 0, 0, width, height)
-      
-      // Convert to JPEG with 70% quality
-      const compressed = canvas.toDataURL('image/jpeg', 0.7)
-      callback(compressed)
+  const handleImageStorage = async (dataUrl, imageType) => {
+    try {
+      // Compress image for storage
+      return new Promise((resolve) => {
+        imageStorage.compressImage(dataUrl, async (compressed) => {
+          // Generate unique key
+          const imageKey = imageStorage.generateImageKey(imageType)
+          
+          // Store in IndexedDB
+          await imageStorage.storeImage(imageKey, compressed)
+          
+          // Clean up old images if needed
+          await imageStorage.cleanupOldImages()
+          
+          resolve(imageKey)
+        })
+      })
+    } catch (error) {
+      console.error('Image storage error:', error)
+      throw new Error('Failed to store image')
     }
-    img.src = dataUrl
   }
 
-  const handleBeforeImageUpload = (e) => {
+  const handleBeforeImageUpload = async (e) => {
     const file = e.target.files[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
@@ -74,18 +62,27 @@ const VolunteerSubmission = ({ onSubmit }) => {
       }
       
       const reader = new FileReader()
-      reader.onloadend = () => {
-        // Compress image to reduce storage usage
-        compressImage(reader.result, (compressed) => {
-          setBeforePreview(compressed)
-          setFormData(prev => ({ ...prev, beforeImage: compressed }))
-        })
+      reader.onloadend = async () => {
+        try {
+          // Store image and get key
+          const imageKey = await handleImageStorage(reader.result, 'before')
+          
+          // Set preview using the compressed data
+          const compressedData = await imageStorage.getImage(imageKey)
+          setBeforePreview(compressedData)
+          
+          // Store key in form data
+          setFormData(prev => ({ ...prev, beforeImage: imageKey }))
+        } catch (error) {
+          console.error('Before image upload error:', error)
+          setError('Failed to store before image')
+        }
       }
       reader.readAsDataURL(file)
     }
   }
 
-  const handleAfterImageUpload = (e) => {
+  const handleAfterImageUpload = async (e) => {
     const file = e.target.files[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
@@ -94,12 +91,21 @@ const VolunteerSubmission = ({ onSubmit }) => {
       }
       
       const reader = new FileReader()
-      reader.onloadend = () => {
-        // Compress image to reduce storage usage
-        compressImage(reader.result, (compressed) => {
-          setAfterPreview(compressed)
-          setFormData(prev => ({ ...prev, afterImage: compressed }))
-        })
+      reader.onloadend = async () => {
+        try {
+          // Store image and get key
+          const imageKey = await handleImageStorage(reader.result, 'after')
+          
+          // Set preview using the compressed data
+          const compressedData = await imageStorage.getImage(imageKey)
+          setAfterPreview(compressedData)
+          
+          // Store key in form data
+          setFormData(prev => ({ ...prev, afterImage: imageKey }))
+        } catch (error) {
+          console.error('After image upload error:', error)
+          setError('Failed to store after image')
+        }
       }
       reader.readAsDataURL(file)
     }
