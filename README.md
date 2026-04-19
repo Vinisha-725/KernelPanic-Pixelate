@@ -8,7 +8,6 @@ A platform for tracking volunteer cleanup activities with multi-language support
 - **Simulated AI Analysis**: Mock cleanup area calculation and eco points (demo purposes)
 - **Volunteer Management**: Submit and track cleanup activities with image upload
 - **Leaderboard**: Gamification with eco points system
-- **Image Storage**: IndexedDB-based storage with compression
 - **Language Toggle**: Instant language switching without page reload
 
 ## Tech Stack
