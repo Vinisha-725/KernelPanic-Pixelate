@@ -15,7 +15,7 @@ A platform for tracking volunteer cleanup activities with multi-language support
 ### Frontend
 - React 18
 - React Router
-- Custom hooks (useAITranslation)
+- Custom hooks
 - IndexedDB for image storage
 - CSS-in-JS styling
 
@@ -102,10 +102,6 @@ DATABASE_URL=your_database_connection_string
 3. Commit changes
 4. Push to fork
 5. Create pull request
-
-## License
-
-MIT License - see LICENSE file for details
 
 ## Environmental Impact
 
